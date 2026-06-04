@@ -2,19 +2,19 @@
 /**
  * Gutenberg Blocks setup
  *
- * @package CamaloteWP\EditorialControl\Admin
+ * @package CamaloteWP\DirectMediaPlacement\Admin
  */
 
-namespace CamaloteWP\EditorialControl\Admin;
+namespace CamaloteWP\DirectMediaPlacement\Admin;
 
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Assets\GetAssetInfo;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Module;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\ModuleInterface;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Assets\GetAssetInfo;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Module;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\ModuleInterface;
 
 /**
  * AdminPage module.
  *
- * @package CamaloteWP\EditorialControl\Admin
+ * @package CamaloteWP\DirectMediaPlacement\Admin
  */
 class AdminPage implements ModuleInterface {
 
@@ -30,10 +30,10 @@ class AdminPage implements ModuleInterface {
 
 	public function __construct() {
 		$args       = [
-			'page_title' => __( 'Editorial Control', CAMALOTE_WP_EDITORIAL_CONTROL_SLUG ),
-			'menu_title' => __( 'Editorial Control', CAMALOTE_WP_EDITORIAL_CONTROL_SLUG ),
+			'page_title' => __( 'Camalote WP - Direct Media Placement', CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG ),
+			'menu_title' => __( 'Direct Media Placement', CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG ),
 			'capability' => 'manage_options',
-			'menu_slug'  => 'editorial-control-page',
+			'menu_slug'  => 'camalote-wp-direct-media-placement-placement',
 			'icon'       => 'dashicons-admin-generic',
 			'position'   => 2,
 		];
@@ -52,8 +52,8 @@ class AdminPage implements ModuleInterface {
 	 */
 	public function register() {
 		$this->setup_asset_vars(
-			dist_path: CAMALOTE_WP_EDITORIAL_CONTROL_DIST_PATH,
-			fallback_version: CAMALOTE_WP_EDITORIAL_CONTROL_VERSION
+			dist_path: CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_DIST_PATH,
+			fallback_version: CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_VERSION
 		);
 
 		add_action( 'admin_menu', [ $this, 'register_admin_menu' ], 10 );

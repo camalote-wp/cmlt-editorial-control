@@ -1,0 +1,1171 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+settings/
+  components/
+    features/
+      ArticlePicker.tsx
+      index.ts
+      SaveSettingsBar.tsx
+    modules/
+      CoverArticlesModule.tsx
+      CoverAudiovisualModule.tsx
+    panels/
+      CoverPanel.tsx
+      index.ts
+    ui/
+      BaseField.tsx
+      index.ts
+      Preview.tsx
+      Section.tsx
+      TextareaField.tsx
+      TextField.tsx
+      UrlField.tsx
+      VideoEmbed.tsx
+  hooks/
+    index.ts
+    usePostWithEmbeds.tsx
+  lib/
+    constants.tsx
+    i18n.tsx
+    schemas.ts
+    utils.tsx
+  stores/
+    slices/
+      cover.ts
+    settings.ts
+  types/
+    domain.ts
+    index.ts
+    props.ts
+    utils.ts
+    wp.ts
+  admin-settings-page.tsx
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="settings/components/features/ArticlePicker.tsx">
+// assets/js/settings/components/ArticlePicker.tsx
+import { ContentSearch } from '@10up/block-components';
+import { Button, ProgressBar } from '@wordpress/components';
+import { rotateLeft } from '@wordpress/icons';
+
+import { STRINGS } from '../../lib/i18n';
+
+import type { ArticleItem } from '../../types';
+
+interface ArticlePickerProps {
+  label: string;
+  selectedItem?: ArticleItem;
+  isLoading?: boolean;
+  onSelectItem: (item: ArticleItem) => void;
+  onRemoveItem: () => void;
+  renderPreview?: (item: ArticleItem) => React.ReactNode;
+  contentMode?: 'post' | 'user' | 'term';
+  contentTypes?: string[];
+}
+
+export const ArticlePicker = ({
+  label,
+  selectedItem,
+  onSelectItem,
+  onRemoveItem,
+  isLoading = false,
+  renderPreview,
+  contentMode = 'post',
+  contentTypes = ['post'],
+}: ArticlePickerProps) => (
+  <div className="rp-ecs-cover-article__picker">
+    <span className="rp-ecs-cover-article__picker-label">
+      {label}
+      {selectedItem && (
+        <Button
+          isDestructive
+          variant="link"
+          onClick={onRemoveItem}
+          icon={rotateLeft}
+          iconSize={20}
+          label={STRINGS.REMOVE}
+        />
+      )}
+    </span>
+
+    <ContentSearch
+      placeholder={STRINGS.SEARCH_CONTENT}
+      label={label}
+      mode={contentMode}
+      contentTypes={contentTypes}
+      onSelectItem={onSelectItem}
+      excludeItems={selectedItem ? [selectedItem] : []}
+    />
+
+    {isLoading && <ProgressBar />}
+
+    {selectedItem && renderPreview && <>{renderPreview(selectedItem)}</>}
+  </div>
+);
+</file>
+
+<file path="settings/components/features/index.ts">
+// assets/js/settings/components/features/index.ts
+export * from './ArticlePicker';
+export * from './SaveSettingsBar';
+</file>
+
+<file path="settings/components/features/SaveSettingsBar.tsx">
+// assets/js/settings/components/SaveSettingsBar.tsx
+import { Button, Snackbar } from '@wordpress/components';
+import { useState } from '@wordpress/element';
+
+import { STRINGS } from '../../lib/i18n';
+import { useSettingsStore } from '../../stores/settings';
+
+type SaveSettingsBarProps = {
+  hasUnsavedChanges: boolean;
+  saving: boolean;
+  saveSettings: () => Promise<boolean>;
+};
+
+export const SaveSettingsBar = ({ hasUnsavedChanges, saving, saveSettings }: SaveSettingsBarProps) => {
+  const [showSavedSnackbar, setShowSavedSnackbar] = useState(false);
+  const validationErrors = useSettingsStore(state => state.validationErrors);
+
+  const handleSave = async () => {
+    const success = await saveSettings();
+    if (success) {
+      setShowSavedSnackbar(true);
+      setTimeout(() => setShowSavedSnackbar(false), 3000);
+    }
+  };
+
+  const hasErrors = validationErrors.length > 0;
+
+  return (
+    <div className="rp-ecs-save-container" data-testid="save-settings-bar">
+      {showSavedSnackbar && (
+        <Snackbar onRemove={() => setShowSavedSnackbar(false)} className="rp-ecs-snackbar">
+          {STRINGS.SETTINGS_SAVED_SUCCESS}
+        </Snackbar>
+      )}
+
+      <div className="rp-ecs-save-bar">
+        <div className="rp-ecs-save-message">
+          {hasErrors ? (
+            validationErrors.map((err) => (
+              <span key={err.field} className="rp-ecs-error">
+                {err.message}
+              </span>
+            ))
+          ) : (
+            hasUnsavedChanges && (
+              <span className="rp-ecs-unsaved">{STRINGS.UNSAVED_CHANGES}</span>
+            )
+          )}
+        </div>
+
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={!hasUnsavedChanges || saving || hasErrors}
+          isBusy={saving}
+          className="rp-ecs-save-changes-button"
+        >
+          {saving ? STRINGS.SAVING : STRINGS.SAVE_CHANGES}
+        </Button>
+      </div>
+    </div>
+  );
+};
+</file>
+
+<file path="settings/components/modules/CoverArticlesModule.tsx">
+// assets/js/settings/components/modules/CoverArticlesModule.tsx
+import { ProgressBar } from '@wordpress/components';
+import { useEntityRecords } from '@wordpress/core-data';
+
+import { usePostWithEmbeds } from '../../hooks';
+import { ARTICLE_TYPES } from '../../lib/constants';
+import { STRINGS } from '../../lib/i18n';
+import { useSettingsStore } from '../../stores/settings';
+import { ArticleItem, WPPost } from '../../types';
+import { ArticlePicker } from '../features';
+import { Preview, Section } from '../ui';
+
+// Preview component that safely fetches and renders picked article
+const PickedArticlePreview = ({ selectedItem, label }: { selectedItem?: ArticleItem; label: string }) => {
+  const postId = selectedItem?.id;
+
+  if (!postId) return null;
+
+  const { post, isLoading } = usePostWithEmbeds(postId);
+
+  if (isLoading) return <ProgressBar />; // render loading
+
+  if (!post || !selectedItem) return null;
+
+  const picked = {
+    id: post.id,
+    title: post.title?.rendered ?? '',
+    url: post.link ?? '',
+    type: selectedItem.type,
+    subtype: selectedItem.subtype,
+    date: post.date ?? '',
+    author: post._embedded?.author?.[0]?.name ?? '',
+    featuredMediaUrl: post._embedded?.['wp:featuredmedia']?.[0]?.source_url ?? '',
+  };
+
+  return (
+    <Preview className="rp-ecs-cover-article__preview" data-testid={`picked-article-${picked.id}`}>
+      {picked.featuredMediaUrl && (
+        <div className="rp-ecs-cover-article__image-wrapper" data-testid={`picked-article-${picked.id}-image`}>
+          <img
+            src={picked.featuredMediaUrl}
+            alt={picked.title || ''}
+            className="rp-ecs-cover-article__image"
+          />
+        </div>
+      )}
+      <div className="rp-ecs-cover-article__text">
+        {picked.url && (
+          <a href={picked.url} target="_blank" rel="noreferrer" className="rp-ecs-cover-article__link" data-testid={`picked-article-${picked.id}-link`} >
+            <h2 className="rp-ecs-cover-article__title">{picked.title || ''}</h2>
+          </a>
+        )}
+        {/* Only render meta if at least one field exists */}
+        {(picked.date || picked.author) && (
+          <div className="rp-ecs-cover-article__meta" data-testid={`picked-article-${picked.id}-meta`}>
+            {picked.date && <span data-testid={`picked-article-${picked.id}-date`}>{new Date(picked.date).toLocaleDateString()}</span>}
+            {picked.date && picked.author && <span> — </span>}
+            {picked.author && <span data-testid={`picked-article-${picked.id}-author`}>{picked.author}</span>}
+          </div>
+        )}
+      </div>
+    </Preview>
+  );
+};
+
+export const CoverArticlesModule = () => {
+  const articles = useSettingsStore((state) => state.settings.cover.articles);
+  const updateArticles = useSettingsStore((state) => state.cover.updateArticles);
+
+  return (
+    <Section title={STRINGS.COVER_ARTICLES}>
+      <div className="rp-ecs-cover-articles">
+        {ARTICLE_TYPES.map(({ key, label }) => {
+          const selectedItem = articles[key]?.[0]; // raw ArticleItem
+
+          return (
+            <div key={key} className="rp-ecs-cover-article">
+              {/* Dumb picker */}
+              <ArticlePicker
+                label={label}
+                selectedItem={selectedItem}
+                onSelectItem={(item) => updateArticles(key, [item])}
+                onRemoveItem={() => updateArticles(key, [])}
+                contentMode="post"
+              />
+
+              {/* External preview */}
+              {selectedItem && <PickedArticlePreview selectedItem={selectedItem} label={label} />}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+};
+</file>
+
+<file path="settings/components/modules/CoverAudiovisualModule.tsx">
+import { useCallback } from '@wordpress/element';
+
+import { STRINGS } from '../../lib/i18n';
+import { hasAudiovisualContent } from '../../lib/utils';
+import { useSettingsStore } from '../../stores/settings';
+import { Preview, Section, TextareaField, TextField, UrlField, VideoEmbed } from '../ui';
+
+export const CoverAudiovisualModule = () => {
+  // Subscribe to the whole audiovisual slice
+  const audiovisual = useSettingsStore(state => state.settings.cover.audiovisual);
+
+  // Get the updater function
+  const setField = useSettingsStore(state => state.cover.updateAudiovisualField);
+
+  // Stable callbacks
+  const onChangeTitle = useCallback((val: string) => setField('title', val), [setField]);
+  const onChangeUrl = useCallback((val: string) => setField('url', val), [setField]);
+  const onChangeDesc = useCallback((val: string) => setField('desc', val), [setField]);
+
+  return (
+    <Section title={STRINGS.AUDIOVISUAL_SECTION}>
+      <div className="rp-ecs-cover-audiovisual-section__fields">
+        <TextField
+          label={STRINGS.VIDEO_TITLE}
+          value={audiovisual.title}
+          onChange={onChangeTitle}
+          help={useSettingsStore(state =>
+            state.validationErrors.find(e => e.field === 'cover.audiovisual.title')?.message
+          )}
+        />
+        <UrlField
+          label={STRINGS.VIDEO_URL}
+          value={audiovisual.url}
+          onChange={onChangeUrl}
+          help={useSettingsStore(state =>
+            state.validationErrors.find(e => e.field === 'cover.audiovisual.url')?.message
+          )}
+        />
+        <TextareaField
+          label={STRINGS.VIDEO_DESCRIPTION}
+          value={audiovisual.desc}
+          onChange={onChangeDesc}
+          help={useSettingsStore(state =>
+            state.validationErrors.find(e => e.field === 'cover.audiovisual.desc')?.message
+          )}
+        />
+      </div>
+
+      {hasAudiovisualContent(audiovisual) && (
+        <Preview className="rp-ecs-cover-audiovisual-section__preview" data-testid="audiovisual-preview">
+          <VideoEmbed
+            url={audiovisual.url}
+            className="rp-ecs-cover-audiovisual-section__preview-embed"
+          />
+          <div className="rp-ecs-cover-audiovisual-section__preview-text">
+            {audiovisual.title && <h3>{audiovisual.title}</h3>}
+            {audiovisual.desc && <p>{audiovisual.desc}</p>}
+          </div>
+        </Preview>
+      )}
+    </Section>
+  );
+};
+</file>
+
+<file path="settings/components/panels/CoverPanel.tsx">
+// assets/js/settings/components/CoverSettings.tsx
+import { CoverArticlesModule } from '../modules/CoverArticlesModule';
+import { CoverAudiovisualModule } from '../modules/CoverAudiovisualModule';
+
+export const CoverPanel = () => {
+  return (
+    <div className="rp-ecs-cover-settings">
+      <CoverArticlesModule />
+      <hr />
+      <CoverAudiovisualModule />
+    </div>
+  );
+};
+</file>
+
+<file path="settings/components/panels/index.ts">
+// assets/js/settings/components/panels/index.ts
+export * from './CoverPanel';
+</file>
+
+<file path="settings/components/ui/BaseField.tsx">
+// js/settings/components/ui/BaseField.tsx
+
+interface BaseFieldProps<T> {
+  label: string;
+  value: T;
+  onChange: (val: T) => void;
+  className?: string;
+  help?: string; // added
+  children: (props: {
+    value: T;
+    onChange: (val: T) => void;
+    help?: string;
+  }) => React.ReactNode;
+}
+
+export const BaseField = <T,>({
+  label,
+  value,
+  onChange,
+  className = '',
+  help,
+  children,
+}: BaseFieldProps<T>) => {
+  return (
+    <div className={`rp-ecs-field ${className}`}>
+      <label className="rp-ecs-field__label">{label}</label>
+      {children({ value, onChange, help })}
+    </div>
+  );
+};
+</file>
+
+<file path="settings/components/ui/index.ts">
+// assets/js/settings/components/ui/index.ts
+export * from './Preview';
+export * from './Section';
+export * from './VideoEmbed';
+export * from './UrlField';
+export * from './TextField';
+export * from './TextareaField';
+</file>
+
+<file path="settings/components/ui/Preview.tsx">
+// assets/js/settings/components/Preview.tsx
+interface PreviewProps {
+  className?: string;
+  children: React.ReactNode;
+};
+
+export const Preview = ({ className = '', children, ...props }: PreviewProps) => (
+  <div className={`rp-ecs-preview ${className}`} {...props}>{children}</div>
+);
+</file>
+
+<file path="settings/components/ui/Section.tsx">
+// assets/js/settings/components/Section.tsx
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const Section = ({ title, children, className = '' }: SectionProps) => (
+  <section className={`rp-ecs-section ${className}`}>
+    <h2 className="rp-ecs-section__title">{title}</h2>
+    <div className="rp-ecs-section__content">
+      {children}
+    </div>
+  </section>
+);
+</file>
+
+<file path="settings/components/ui/TextareaField.tsx">
+import { TextareaControl } from '@wordpress/components';
+
+import { BaseField } from './BaseField';
+
+interface TextareaFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  help?: string; // added
+  validationPath?: string;
+  className?: string;
+}
+
+export const TextareaField = ({ help, ...props }: TextareaFieldProps) => (
+  <BaseField<string> {...props} help={help} className={`field-textarea ${props.className || ''}`}>
+    {({ value, onChange, help }) => (
+      <TextareaControl value={value} onChange={onChange} help={help} __nextHasNoMarginBottom />
+    )}
+  </BaseField>
+);
+</file>
+
+<file path="settings/components/ui/TextField.tsx">
+import { TextControl } from '@wordpress/components';
+
+import { BaseField } from './BaseField';
+
+interface TextFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  help?: string; // added
+  validationPath?: string;
+  className?: string;
+}
+
+export const TextField = ({ help, ...props }: TextFieldProps) => (
+  <BaseField<string> {...props} help={help} className={`field-text ${props.className || ''}`}>
+    {({ value, onChange, help }) => (
+      <TextControl value={value} onChange={onChange} help={help} __nextHasNoMarginBottom __next40pxDefaultSize/>
+    )}
+  </BaseField>
+);
+</file>
+
+<file path="settings/components/ui/UrlField.tsx">
+import { TextControl } from '@wordpress/components';
+
+import { BaseField } from './BaseField';
+
+interface UrlFieldProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  help?: string; // added
+  validationPath?: string;
+  className?: string;
+}
+
+export const UrlField = ({ help, ...props }: UrlFieldProps) => (
+  <BaseField<string> {...props} help={help} className={`field-url ${props.className || ''}`}>
+    {({ value, onChange, help }) => (
+      <TextControl value={value} onChange={onChange} help={help} type="url" __nextHasNoMarginBottom __next40pxDefaultSize/>
+    )}
+  </BaseField>
+);
+</file>
+
+<file path="settings/components/ui/VideoEmbed.tsx">
+// assets/js/settings/components/ui/VideoEmbed.tsx
+
+import { STRINGS } from '../../lib/i18n';
+import { getEmbedUrl } from '../../lib/utils';
+
+interface VideoEmbedProps {
+  url: string;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export const VideoEmbed = ({ url, className = '', style }: VideoEmbedProps) => {
+  const embedUrl = getEmbedUrl(url);
+
+  if (!url) return null;
+
+  return (
+    <div className={`rp-ecs-video-embed ${className}`} style={style}>
+      {embedUrl ? (
+        <iframe
+          src={embedUrl}
+          data-testid="video-embed-iframe"
+          allowFullScreen
+          style={{ width: '100%', height: 'auto', aspectRatio: '16/9', border: 'none' }}
+        />
+      ) : (
+        <div className="rp-ecs-video-embed__fallback">
+          {STRINGS.EMBED_URL_NOT_COMPATIBLE}: {url}
+        </div>
+      )}
+    </div>
+  );
+};
+</file>
+
+<file path="settings/hooks/index.ts">
+// assets/js/settings/hooks/index.ts
+export * from './usePostWithEmbeds';
+</file>
+
+<file path="settings/hooks/usePostWithEmbeds.tsx">
+// hooks/usePostWithEmbeds.ts
+import { useEntityRecords } from '@wordpress/core-data';
+
+import { WPPost } from '../types';
+
+export const usePostWithEmbeds = (postId: number) => {
+  
+  const { records, isResolving, hasResolved } = useEntityRecords<WPPost>(
+    'postType',
+    'post',
+    {
+      include: [postId],
+      _embed: true,
+      per_page: 1,
+    }
+  );
+  
+  const post = records?.find((p) => p.id === postId);
+  const isLoading = isResolving || !hasResolved;
+  
+  return { post, isLoading };
+};
+</file>
+
+<file path="settings/lib/constants.tsx">
+// assets/js/settings/constants.tsx
+import { CoverArticleConfig, CoverAudiovisualFieldConfig } from '../types';
+import { STRINGS } from './i18n';
+
+export const ARTICLE_TYPES: CoverArticleConfig[] = [
+  { key: 'article_primary', label: STRINGS.ARTICLE_PRIMARY },
+  { key: 'article_secondary', label: STRINGS.ARTICLE_SECONDARY },
+  { key: 'article_tertiary', label: STRINGS.ARTICLE_TERTIARY },
+];
+
+export const AUDIOVISUAL_FIELDS: CoverAudiovisualFieldConfig[] = [
+  { key: 'title', label: STRINGS.VIDEO_TITLE, type: 'text' },
+  { key: 'url', label: STRINGS.VIDEO_URL, type: 'url' },
+  { key: 'desc', label: STRINGS.VIDEO_DESCRIPTION, type: 'textarea' },
+];
+</file>
+
+<file path="settings/lib/i18n.tsx">
+// assets/js/settings/lib/i18n.tsx
+import { __ } from '@wordpress/i18n';
+
+// Export commonly used strings as constants for consistency
+export const STRINGS = {
+    // Page titles
+    EDITORIAL_CONTROL: __('Editorial Control', 'camalote-wp-direct-media-placement'),
+    COVER: __('Portada', 'camalote-wp-direct-media-placement'),
+    
+    // Article types
+    ARTICLE_PRIMARY: __('Artículo Primario', 'camalote-wp-direct-media-placement'),
+    ARTICLE_SECONDARY: __('Artículo Secundario', 'camalote-wp-direct-media-placement'),
+    ARTICLE_TERTIARY: __('Artículo Terciario', 'camalote-wp-direct-media-placement'),
+    COVER_ARTICLES: __('Artículos de tapa', 'camalote-wp-direct-media-placement'),
+    
+    // Audiovisual section
+    AUDIOVISUAL_SECTION: __('Sección Audiovisual', 'camalote-wp-direct-media-placement'),
+    VIDEO_TITLE: __('Título del video', 'camalote-wp-direct-media-placement'),
+    VIDEO_URL: __('URL del video', 'camalote-wp-direct-media-placement'),
+    VIDEO_DESCRIPTION: __('Descripción del video', 'camalote-wp-direct-media-placement'),
+    NO_AUDIOVISUAL_CONTENT: __('No hay contenido audiovisual.', 'camalote-wp-direct-media-placement'),
+    EMBED_URL_NOT_COMPATIBLE: __('URL no compatible para incrustar', 'camalote-wp-direct-media-placement'),
+    
+    // Form controls
+    SEARCH_CONTENT: __('Buscar contenido...', 'camalote-wp-direct-media-placement'),
+    LOADING: __('Cargando...', 'camalote-wp-direct-media-placement'),
+    SAVING: __('Guardando...', 'camalote-wp-direct-media-placement'),
+    SAVE_CHANGES: __('Guardar Cambios', 'camalote-wp-direct-media-placement'),
+    UNSAVED_CHANGES: __('Cambios sin guardar', 'camalote-wp-direct-media-placement'),
+    SETTINGS_SAVED_SUCCESS: __('¡Configuración guardada exitosamente!', 'camalote-wp-direct-media-placement'),
+    
+    // Validation messages
+    VALID_URL_REQUIRED: __('Por favor ingrese una URL válida con protocolo (http:// o https://).', 'camalote-wp-direct-media-placement'),
+    
+    // Misc
+    NO_TITLE: __('(Sin título)', 'camalote-wp-direct-media-placement'),
+    REMOVE: __('Eliminar', 'camalote-wp-direct-media-placement'),
+};
+</file>
+
+<file path="settings/lib/schemas.ts">
+// js/settings/lib/schemas.ts
+import { z } from 'zod';
+
+import { STRINGS } from './i18n';
+
+// Custom URL validation that matches your current logic
+const urlSchema = z
+  .string()
+  .refine(
+    (url) => {
+      if (!url.trim()) return true; // Allow empty URLs
+      
+      try {
+        const parsed = new URL(url);
+        // hostname must be non-empty and contain at least one alphanumeric character
+        return parsed.hostname && /[a-z0-9]/i.test(parsed.hostname);
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: STRINGS.VALID_URL_REQUIRED,
+    }
+  );
+
+// Article item schema
+export const articleItemSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  url: z.string(),
+  type: z.string(),
+  subtype: z.string(),
+});
+
+// Cover articles settings schema
+export const coverArticlesSchema = z.object({
+  article_primary: z.array(articleItemSchema).default([]),
+  article_secondary: z.array(articleItemSchema).default([]),
+  article_tertiary: z.array(articleItemSchema).default([]),
+});
+
+// Cover audiovisual settings schema
+export const coverAudiovisualSchema = z.object({
+  title: z.string().default(''),
+  url: urlSchema.default(''),
+  desc: z.string().default(''),
+});
+
+// Cover settings schema
+export const coverSettingsSchema = z.object({
+  articles: coverArticlesSchema.default(() => ({
+    article_primary: [],
+    article_secondary: [],
+    article_tertiary: [],
+  })),
+  audiovisual: coverAudiovisualSchema.default(() => ({
+    title: '',
+    url: '',
+    desc: '',
+  })),
+});
+
+// Main settings schema
+export const settingsSchema = z.object({
+  cover: coverSettingsSchema.default(() => ({
+    articles: {
+      article_primary: [],
+      article_secondary: [],
+      article_tertiary: [],
+    },
+    audiovisual: {
+      title: '',
+      url: '',
+      desc: '',
+    },
+  })),
+});
+
+// Type inference from schemas
+export type ArticleItem = z.infer<typeof articleItemSchema>;
+export type CoverArticlesSettings = z.infer<typeof coverArticlesSchema>;
+export type CoverAudiovisualSettings = z.infer<typeof coverAudiovisualSchema>;
+export type CoverSettings = z.infer<typeof coverSettingsSchema>;
+export type Settings = z.infer<typeof settingsSchema>;
+
+// Validation error type
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+// Helper to convert Zod errors to your ValidationError format
+export const zodErrorsToValidationErrors = (
+  zodError: z.ZodError,
+  prefix = ''
+): ValidationError[] => {
+  return zodError.issues.map((issue) => ({
+    field: prefix ? `${prefix}.${issue.path.join('.')}` : issue.path.join('.'),
+    message: issue.message,
+  }));
+};
+</file>
+
+<file path="settings/lib/utils.tsx">
+// js/settings/lib/utils.tsx
+import getVideoId from 'get-video-id';
+
+import { CoverAudiovisualSettings } from '../lib/schemas';
+import { AUDIOVISUAL_FIELDS } from './constants';
+
+export const getEmbedUrl = (url: string): string | null => {
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url.trim());
+    // normalize protocol + hostname
+    parsed.protocol = parsed.protocol.toLowerCase();
+    parsed.hostname = parsed.hostname.toLowerCase();
+    const normalizedUrl = parsed.toString();
+
+    const { id, service } = getVideoId(normalizedUrl);
+    if (!id || !service) return null;
+
+    if (service === 'youtube') return `https://www.youtube.com/embed/${id}`;
+    if (service === 'vimeo') return `https://player.vimeo.com/video/${id}`;
+
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+export const hasAudiovisualContent = (settings: CoverAudiovisualSettings): boolean => 
+  AUDIOVISUAL_FIELDS.some(field => !!settings[field.key]?.trim());
+</file>
+
+<file path="settings/stores/slices/cover.ts">
+// js/settings/stores/slices/cover.ts
+import type { StateCreator } from 'zustand';
+import {
+    coverArticlesSchema, coverAudiovisualSchema, ValidationError, zodErrorsToValidationErrors
+} from '../../lib/schemas';
+import { CoverArticlesSettings, CoverAudiovisualSettings } from '../../types';
+
+import type { SettingsStore } from '../settings';
+export interface CoverSlice {
+  updateAudiovisualField: <K extends keyof CoverAudiovisualSettings>(
+    field: K,
+    value: CoverAudiovisualSettings[K]
+  ) => void;
+  updateArticles: <K extends keyof CoverArticlesSettings>(
+    type: K,
+    items: CoverArticlesSettings[K]
+  ) => void;
+  validateField: (field: string, value: any) => ValidationError | null;
+}
+
+export const createCoverSlice: StateCreator<SettingsStore, [], [], CoverSlice> = (set, get, store) => ({
+  updateAudiovisualField: (field, value) => {
+    get().updateSetting('cover', (cover) => ({
+      ...cover,
+      audiovisual: { ...cover.audiovisual, [field]: value },
+    }));
+  },
+
+  updateArticles: (type, items) => {
+    get().updateSetting('cover', (cover) => ({
+      ...cover,
+      articles: { ...cover.articles, [type]: items },
+    }));
+  },
+
+  validateField: (field, value) => {
+    try {
+      const { audiovisual, articles } = get().settings.cover;
+      if (field in audiovisual) {
+        coverAudiovisualSchema.pick({ [field]: true }).parse({ [field]: value });
+      } else if (field in articles) {
+        coverArticlesSchema.pick({ [field]: true }).parse({ [field]: value });
+      }
+      return null;
+    } catch (err: any) {
+      return zodErrorsToValidationErrors(err)[0] ?? null;
+    }
+  },
+});
+</file>
+
+<file path="settings/stores/settings.ts">
+// js/settings/stores/settings.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+import apiFetch from '@wordpress/api-fetch';
+
+import {
+    Settings, settingsSchema, ValidationError, zodErrorsToValidationErrors
+} from '../lib/schemas';
+import { CoverSlice, createCoverSlice } from './slices/cover';
+
+export type SettingsStore = {
+  settings: Settings;
+  originalSettings: Settings;
+  loading: boolean;
+  saving: boolean;
+
+  hasUnsavedChanges: boolean;
+  loadSettings: () => Promise<void>;
+  saveSettings: () => Promise<boolean>;
+  resetSettings: () => void;
+  updateSetting: <K extends keyof Settings>(
+    sliceKey: K,
+    updater: (slice: Settings[K]) => Settings[K]
+  ) => void;
+
+  validationErrors: ValidationError[];
+  validateStore: () => void;
+  getValidationError: (path: string) => string | null;
+
+  cover: CoverSlice;
+};
+
+export const useSettingsStore = create<SettingsStore>()(
+  persist(
+    (set, get, store) => {
+      const computeValidationErrors = (settings: Settings) => {
+        const result = settingsSchema.safeParse(settings);
+        return result.success ? [] : zodErrorsToValidationErrors(result.error);
+      };
+
+      const computeHasUnsavedChanges = (settings: Settings, original: Settings) =>
+        JSON.stringify(settings) !== JSON.stringify(original);
+
+      return {
+        settings: settingsSchema.parse({}),
+        originalSettings: settingsSchema.parse({}),
+        loading: true,
+        saving: false,
+        hasUnsavedChanges: false,
+
+        validationErrors: [],
+
+        loadSettings: async () => {
+          set({ loading: true });
+          try {
+            const data = await apiFetch({ path: '/camalote-wp/direct-media-placement/v1/settings' });
+            const parsed = settingsSchema.parse(data);
+            set({
+              settings: parsed,
+              originalSettings: parsed,
+              loading: false,
+              validationErrors: computeValidationErrors(parsed),
+              hasUnsavedChanges: computeHasUnsavedChanges(parsed, parsed),
+            });
+          } catch (err) {
+            console.error(err);
+            set({ loading: false });
+          }
+        },
+
+        saveSettings: async () => {
+          get().validateStore();
+          if (get().validationErrors.length > 0) return false;
+
+          set({ saving: true });
+          try {
+            const saved = await apiFetch({
+              path: '/camalote-wp/direct-media-placement/v1/settings',
+              method: 'PATCH',
+              data: get().settings,
+            });
+            const parsed = settingsSchema.parse(saved);
+            set({
+              settings: parsed,
+              originalSettings: parsed,
+              saving: false,
+              validationErrors: computeValidationErrors(parsed),
+              hasUnsavedChanges: computeHasUnsavedChanges(parsed, parsed),
+            });
+            return true;
+          } catch (err) {
+            console.error(err);
+            set({ saving: false });
+            return false;
+          }
+        },
+
+        updateSetting: (sliceKey, updater) => {
+          set((state) => {
+            const newSlice = updater(state.settings[sliceKey]);
+            const newSettings = { ...state.settings, [sliceKey]: newSlice };
+            return {
+              settings: newSettings,
+              validationErrors: computeValidationErrors(newSettings),
+              hasUnsavedChanges: computeHasUnsavedChanges(newSettings, state.originalSettings),
+            };
+          });
+        },
+
+        resetSettings: () => {
+          const original = get().originalSettings;
+          set({
+            settings: original,
+            validationErrors: computeValidationErrors(original),
+            hasUnsavedChanges: computeHasUnsavedChanges(original, original),
+          });
+        },
+
+        validateStore: () => {
+          const errors = computeValidationErrors(get().settings);
+          set({ validationErrors: errors });
+        },
+
+        getValidationError: (path: string) =>
+          get().validationErrors.find((e) => e.field === path)?.message ?? null,
+
+        // slice
+        cover: createCoverSlice(set, get, store),
+      };
+    },
+    {
+      name: 'camalote-wp-direct-media-placement-form-draft',
+      partialize: (state) => ({ settings: state.settings }),
+    }
+  )
+);
+</file>
+
+<file path="settings/types/domain.ts">
+// assets/js/settings/types/domain.ts
+import z from 'zod';
+
+import {
+    articleItemSchema, coverArticlesSchema, coverAudiovisualSchema, coverSettingsSchema,
+    settingsSchema
+} from '../lib/schemas';
+
+/**
+ * Article section configuration for constants
+ */
+export type CoverArticleConfig = {
+  key: keyof CoverArticlesSettings;  // 'article_primary' | 'article_secondary' | 'article_tertiary'
+  label: string;
+}
+
+/**
+ * Form field configuration for audiovisual settings
+ */
+export type CoverAudiovisualFieldConfig = {
+  key: keyof CoverAudiovisualSettings;
+  label: string;
+  type: 'text' | 'url' | 'textarea';
+}
+
+// Type inference from schemas
+export type Settings = z.infer<typeof settingsSchema>;
+export type CoverSettings = z.infer<typeof coverSettingsSchema>;
+export type CoverArticlesSettings = z.infer<typeof coverArticlesSchema>;
+export type CoverAudiovisualSettings = z.infer<typeof coverAudiovisualSchema>;
+export type ArticleItem = z.infer<typeof articleItemSchema>;
+</file>
+
+<file path="settings/types/index.ts">
+// assets/js/settings/types/index.ts
+export * from './wp';
+export * from './props';
+export * from './utils';
+export * from './domain';
+</file>
+
+<file path="settings/types/props.ts">
+// assets/js/settings/types/props.ts
+import {
+    ArticleItem, CoverArticlesSettings, CoverAudiovisualSettings, CoverSettings
+} from './domain';
+
+// Component props
+export interface CoverSettingsProps {
+  settings: CoverSettings;
+  updaters: CoverUpdaters;
+}
+
+export type CoverUpdaters = {
+  updateArticle: (type: keyof CoverArticlesSettings, items: ArticleItem[]) => void;
+  updateAudiovisual: (field: keyof CoverAudiovisualSettings, value: string) => void;
+};
+
+export interface CoverArticleProps {
+  label: string;
+  selectedItems: ArticleItem[];
+  onSelectItem: (items: ArticleItem[]) => void;
+}
+</file>
+
+<file path="settings/types/utils.ts">
+// assets/js/settings/types/utils.ts
+export type ValidationFieldType = 'url' | 'text' | 'textarea';
+export type ValidationResult = string | null;
+export type ValidationError = {
+  field: string; // e.g., 'url', 'title', 'cover.articles.article_primary'
+  message: string; // plain string describing the problem
+};
+</file>
+
+<file path="settings/types/wp.ts">
+// assets/js/settings/types/wp.ts
+// Core WordPress entities
+export interface WPAuthor {
+  id: number;
+  name: string;
+}
+
+export interface WPFeaturedMedia {
+  source_url: string;
+}
+
+export interface WPPost {
+  id: number;
+  title: { rendered: string };
+  link: string;
+  date: string;
+  _embedded?: {
+    author?: WPAuthor[];
+    'wp:featuredmedia'?: WPFeaturedMedia[];
+  };
+}
+</file>
+
+<file path="settings/admin-settings-page.tsx">
+// assets/js/settings/admin-settings-page.tsx
+import '../../css/settings/admin-settings-page.scss';
+
+import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
+
+import { ProgressBar } from '@wordpress/components';
+import domReady from '@wordpress/dom-ready';
+import { createRoot, useEffect } from '@wordpress/element';
+
+import { SaveSettingsBar } from './components/features';
+import { CoverPanel } from './components/panels';
+import { STRINGS } from './lib/i18n';
+import { useSettingsStore } from './stores/settings';
+
+// Main React app
+export const EditorialControlApp = () => {
+  // Zustand selectors
+  const loading = useSettingsStore((state) => state.loading);
+  const saving = useSettingsStore((state) => state.saving);
+  const hasUnsavedChanges = useSettingsStore((state) => state.hasUnsavedChanges);
+  const loadSettings = useSettingsStore((state) => state.loadSettings);
+  const saveSettings = useSettingsStore((state) => state.saveSettings);
+
+  // Fetch settings once on mount
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  if (loading) {
+    return (
+      <div className="rp-ecs-loading-container">
+        <ProgressBar className="rp-ecs-loading-bar" />
+        <p className="rp-ecs-loading-text">{STRINGS.LOADING}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rp-ecs-container" data-testid="editorial-control-app">
+      <Tabs>
+        <TabList>
+          <Tab>{STRINGS.COVER}</Tab>
+        </TabList>
+        <TabPanel>
+          <CoverPanel />
+        </TabPanel>
+      </Tabs>
+
+      <SaveSettingsBar
+        hasUnsavedChanges={hasUnsavedChanges}
+        saving={saving}
+        saveSettings={saveSettings}
+      />
+    </div>
+  );
+};
+
+// DOM setup
+domReady(() => {
+  const rootEl = document.getElementById('direct-media-placement-page');
+  if (!rootEl) return;
+
+  const root = createRoot(rootEl);
+  root.render(<EditorialControlApp />);
+});
+</file>
+
+</files>

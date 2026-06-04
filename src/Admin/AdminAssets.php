@@ -2,19 +2,19 @@
 /**
  * Admin Assets module.
  *
- * @package CamaloteWP\EditorialControl\Admin
+ * @package CamaloteWP\DirectMediaPlacement\Admin
  */
 
-namespace CamaloteWP\EditorialControl\Admin;
+namespace CamaloteWP\DirectMediaPlacement\Admin;
 
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Assets\GetAssetInfo;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Module;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\ModuleInterface;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Assets\GetAssetInfo;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Module;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\ModuleInterface;
 
 /**
  * Admin Assets module.
  *
- * @package CamaloteWP\EditorialControl\Admin
+ * @package CamaloteWP\DirectMediaPlacement\Admin
  */
 class AdminAssets implements ModuleInterface {
 
@@ -37,8 +37,8 @@ class AdminAssets implements ModuleInterface {
 	 */
 	public function register() {
 		$this->setup_asset_vars(
-			dist_path: CAMALOTE_WP_EDITORIAL_CONTROL_PATH . 'dist/',
-			fallback_version: CAMALOTE_WP_EDITORIAL_CONTROL_VERSION
+			dist_path: CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_PATH . 'dist/',
+			fallback_version: CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_VERSION
 		);
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
@@ -53,11 +53,11 @@ class AdminAssets implements ModuleInterface {
 	public function admin_scripts() {
 		$screen = get_current_screen();
 		
-		if ( $screen && 'toplevel_page_editorial-control-page' === $screen->id ) {
+		if ( $screen && 'toplevel_page_camalote-wp-direct-media-placement-placement' === $screen->id ) {
 			
 			wp_enqueue_script(
-				CAMALOTE_WP_EDITORIAL_CONTROL_SLUG . '_admin-settings-page',
-				CAMALOTE_WP_EDITORIAL_CONTROL_URL . 'dist/js/settings/admin-settings-page.js',
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG . '_admin-settings-page',
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_URL . 'dist/js/settings/admin-settings-page.js',
 				$this->get_asset_info( 'settings/admin-settings-page', 'dependencies' ),
 				$this->get_asset_info( 'settings/admin-settings-page', 'version' ),
 				true
@@ -65,9 +65,9 @@ class AdminAssets implements ModuleInterface {
 
 			// Set up JavaScript translations
 			wp_set_script_translations(
-				CAMALOTE_WP_EDITORIAL_CONTROL_SLUG . '_admin-settings-page',
-				'camalote-wp-editorial-control',
-				CAMALOTE_WP_EDITORIAL_CONTROL_PATH . 'languages'
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG . '_admin-settings-page',
+				'camalote-wp-direct-media-placement',
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_PATH . 'languages'
 			);
 		}
 
@@ -81,13 +81,13 @@ class AdminAssets implements ModuleInterface {
 	public function admin_styles() {
 		$screen = get_current_screen();
 
-		if ( $screen && 'toplevel_page_editorial-control-page' === $screen->id ) {
+		if ( $screen && 'toplevel_page_camalote-wp-direct-media-placement-placement' === $screen->id ) {
 			// This is the source of truth for the entire component's dependencies.
 			$deps = [];
 	
 			wp_enqueue_style(
-				CAMALOTE_WP_EDITORIAL_CONTROL_SLUG . '_admin-settings-page-styles',
-				CAMALOTE_WP_EDITORIAL_CONTROL_URL . 'dist/css/settings/admin-settings-page.css', // Note the corrected file name
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG . '_admin-settings-page-styles',
+				CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_URL . 'dist/css/settings/admin-settings-page.css', // Note the corrected file name
 				$deps,
 				$this->get_asset_info( 'settings/admin-settings-page', 'version' ),
 			);

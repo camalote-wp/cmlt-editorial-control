@@ -130,7 +130,7 @@ export const useSettingsStore = create<SettingsStore>()(
       };
     },
     {
-      name: 'camalote-wp-editorial-control-form-draft',
+      name: 'camalote-wp-direct-media-placement-form-draft',
       partialize: (state) => ({ settings: state.settings }),
     }
   )

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PLUGIN="camalote-wp-editorial-control"
+PLUGIN="camalote-wp-direct-media-placement"
 PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LANG_DIR="$PLUGIN_ROOT/languages"
 POT_FILE="$LANG_DIR/${PLUGIN}.pot"

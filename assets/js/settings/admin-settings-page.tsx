@@ -57,7 +57,7 @@ export const EditorialControlApp = () => {
 
 // DOM setup
 domReady(() => {
-  const rootEl = document.getElementById('editorial-control-page');
+  const rootEl = document.getElementById('camalote-wp-direct-media-placement-placement');
   if (!rootEl) return;
 
   const root = createRoot(rootEl);

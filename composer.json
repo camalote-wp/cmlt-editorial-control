@@ -19,7 +19,7 @@
   },
   "autoload": {
     "psr-4": {
-      "CamaloteWP\\EditorialControl\\": "src/"
+      "CamaloteWP\\DirectMediaPlacement\\": "src/"
     }
   },
   "require-dev": {

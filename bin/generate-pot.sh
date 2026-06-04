@@ -7,7 +7,7 @@ set -euo pipefail
 # Notes: Step-based logging for clarity in CI/CD
 # =============================================================================
 
-PLUGIN="camalote-wp-editorial-control"
+PLUGIN="camalote-wp-direct-media-placement"
 PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_POT="$(mktemp)"
 IDENTIFIER="POTGEN"

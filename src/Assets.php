@@ -2,27 +2,27 @@
 /**
  * Global Assets module.
  *
- * @package CamaloteWP\EditorialControl
+ * @package CamaloteWP\DirectMediaPlacement
  */
 
-namespace CamaloteWP\EditorialControl;
+namespace CamaloteWP\DirectMediaPlacement;
 
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Assets\GetAssetInfo;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\Module;
-use CamaloteWP\EditorialControl\Vendor\TenupFramework\ModuleInterface;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Assets\GetAssetInfo;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\Module;
+use CamaloteWP\DirectMediaPlacement\Vendor\TenupFramework\ModuleInterface;
 
 /**
  * Global Assets module.
  *
- * @package CamaloteWP\EditorialControl
+ * @package CamaloteWP\DirectMediaPlacement
  */
 class Assets implements ModuleInterface {
 
 	use Module;
 	use GetAssetInfo;
 
-	private const ASSETS_DIST_PATH = CAMALOTE_WP_EDITORIAL_CONTROL_PATH . 'dist/';
-	private const ASSETS_FALLBACK_VERSION = CAMALOTE_WP_EDITORIAL_CONTROL_VERSION;
+	private const ASSETS_DIST_PATH = CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_PATH . 'dist/';
+	private const ASSETS_FALLBACK_VERSION = CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_VERSION;
 
 	/**
 	 * Can this module be registered?
@@ -83,8 +83,8 @@ class Assets implements ModuleInterface {
 	 */
 	public function admin_block_editor_scripts() {
 		wp_enqueue_script(
-			CAMALOTE_WP_EDITORIAL_CONTROL_SLUG . '_block-filters',
-			CAMALOTE_WP_EDITORIAL_CONTROL_URL . 'dist/js/block-filters.js',
+			CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_SLUG . '_block-filters',
+			CAMALOTE_WP_DIRECT_MEDIA_PLACEMENT_URL . 'dist/js/block-filters.js',
 			$this->get_asset_info( 'block-filters', 'dependencies' ),
 			$this->get_asset_info( 'block-filters', 'version' ),
 			true
